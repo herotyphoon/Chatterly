@@ -5,12 +5,14 @@ const authRoutes = require('./routes/auth.routes.js');
 const messageRoutes = require('./routes/message.routes.js');
 
 const app = express();
-const __dirname = path.resolve();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
     app.get('*', (req, res) => {
