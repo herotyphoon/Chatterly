@@ -44,11 +44,38 @@ async function handleSignUp(req, res) {
 }
 
 async function handleLogin(req, res) {
-    res.status(501).json({ message: 'Not implemented' });
+    try {
+        const { email, password } = req.body;
+
+        const jwtExpire = ms(process.env.JWT_EXPIRE);
+
+        const user = await User.findOne({ email }).select('+password');
+        if (!user || !(await user.comparePassword(password))) return res.status(400).json({message: 'Invalid credentials'});
+
+        const token = generateToken(user);
+
+        res.status(200).cookie('__sessionID', token, {
+            httpOnly: true,
+            maxAge: jwtExpire,
+            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production',
+        }).json({
+            _id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            profileImageUrl: user.profileImageUrl,
+            message: 'Login successful!'
+        });
+
+    } catch (error) {
+        console.error( "Error Logging In: ", error.message);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
 }
 
 function handleLogout(req, res) {
-    res.status(501).json({ message: 'Not implemented' });
+    res.clearCookie('__sessionID');
+    res.status(200).json({message: 'Logged out successfully'});
 }
 
 module.exports = { handleSignUp, handleLogin, handleLogout };
