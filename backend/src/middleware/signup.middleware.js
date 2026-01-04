@@ -3,13 +3,23 @@ const User = require("../models/user.model");
 async function validateSignupRequest(req, res, next) {
     try {
         req.body.fullName = req.body.fullName?.trim();
+        req.body.username = req.body.username?.trim();
         req.body.email = req.body.email?.trim().toLowerCase();
 
-        const {fullName, email, password} = req.body;
+        const {username, fullName, email, password} = req.body;
 
-        if (!fullName || !email || !password) return res.status(400).json({message: 'All fields are required'});
+        if (!username || !fullName || !email || !password) return res.status(400).json({message: 'All fields are required'});
 
+        if (username.length < 5) return res.status(400).json({message: 'Username must be at least 5 characters'});
 
+        if (username.length > 50) return res.status(400).json({message: 'Username must be at most 50 characters'});
+
+        const usernameRegex = /^[a-z0-9_]+$/;
+        if (!usernameRegex.test(username)) {
+            return res.status(400).json({
+                message: 'Username must contain only lowercase letters, numbers or _'
+            });
+        }
 
         if (password.length < 8) return res.status(400).json({message: 'Password must be at least 8 characters'});
 
@@ -23,8 +33,16 @@ async function validateSignupRequest(req, res, next) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) return res.status(400).json({message: 'Invalid email address'});
 
-        const user = await User.findOne({email});
-        if (user) return res.status(400).json({message: 'Email already exists'});
+        const existingUser = await User.findOne({
+            $or: [{email}, {username}]
+        });
+
+        if (existingUser) {
+            if (existingUser.email === email) {
+                return res.status(400).json({message: 'Email already exists'});
+            }
+            return res.status(400).json({message: 'Username already exists'});
+        }
 
         next();
     } catch (error) {

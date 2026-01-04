@@ -3,6 +3,13 @@ const { Schema, model } = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new Schema({
+    username: {
+        type: String,
+        required: true,
+        unique: true,
+        minlength: 5,
+        maxlength: 50,
+    },
     fullName: {
         type: String,
         required: true,
@@ -29,6 +36,11 @@ const userSchema = new Schema({
         required: false,
         default: path.resolve(__dirname, '..' ,'../public/default.png'),
     },
+    isDiscoverable: {
+        type: Boolean,
+        default: true,
+        select: false,
+    }
 },
     { timestamps: true }
 );
