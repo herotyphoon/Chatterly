@@ -9,7 +9,7 @@ async function handleSignUp(req, res) {
             throw new Error('JWT_EXPIRE environment variable is required');
         }
 
-        const {fullName, email, password} = req.body;
+        const {username, fullName, email, password} = req.body;
 
         const jwtExpire = ms(process.env.JWT_EXPIRE);
 
@@ -18,6 +18,7 @@ async function handleSignUp(req, res) {
         }
 
         const newUser = await User.create({
+            username,
             fullName,
             email,
             password,
@@ -32,6 +33,7 @@ async function handleSignUp(req, res) {
             secure: process.env.NODE_ENV === 'production',
         }).json({
             _id: newUser._id,
+            username: newUser.username,
             fullName: newUser.fullName,
             email: newUser.email,
             profileImageUrl: newUser.profileImageUrl,
@@ -91,10 +93,60 @@ async function handleLogin(req, res) {
 function handleLogout(req, res) {
     res.clearCookie('__sessionID', {
         httpOnly: true,
-        ameSite: 'strict',
+        sameSite: 'strict',
         secure: process.env.NODE_ENV === 'production',
     });
     res.status(200).json({message: 'Logged out successfully'});
 }
 
-module.exports = { handleSignUp, handleLogin, handleLogout };
+async function handleUpdateProfile(req, res) {
+    try {
+        const updates = {};
+        const { fullName, profileImageUrl, isDiscoverable } = req.body;
+
+        if (typeof fullName === 'string') {
+            const trimmedFullName = fullName.trim();
+            if (trimmedFullName.length < 2 || trimmedFullName.length > 100) {
+                return res.status(400).json({ message: 'Full name must be between 2 and 100 characters' });
+            }
+            updates.fullName = trimmedFullName;
+        }
+
+        if (typeof profileImageUrl === 'string') {
+            const trimmedUrl = profileImageUrl.trim();
+            try {
+                new URL(trimmedUrl);
+                updates.profileImageUrl = trimmedUrl;
+            } catch {
+                return res.status(400).json({ message: 'Invalid profile image URL' });
+            }
+        }
+
+        if (typeof isDiscoverable === 'boolean') {
+            updates.isDiscoverable = isDiscoverable;
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ message: 'No valid fields to update' });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            { $set: updates },
+            {
+                new: true,
+                runValidators: true,
+            }
+        ).select('-password');
+
+        return res.status(200).json({
+            message: 'Profile updated successfully',
+            user: updatedUser,
+        });
+    } catch (error) {
+        console.error('Update profile failed:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+module.exports = { handleSignUp, handleLogin, handleLogout, handleUpdateProfile };

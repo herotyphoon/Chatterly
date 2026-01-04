@@ -12,6 +12,7 @@ function generateToken(User) {
     try {
         const payload = {
             _id: User._id,
+            username: User.username,
             fullName: User.fullName,
             email: User.email,
             profileImageUrl: User.profileImageUrl,
@@ -24,7 +25,21 @@ function generateToken(User) {
         return token;
     } catch (error) {
         console.error(`Token generation failed: ${error.message}`);
+        throw error;
     }
 }
 
-module.exports = {generateToken};
+function getUserFromToken(token) {
+    if (!process.env.JWT_SECRET) {
+        throw new Error('JWT_SECRET environment variable is required');
+    }
+    if (!token) return null;
+    try {
+        return jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+        return null;
+    }
+
+}
+
+module.exports = {generateToken, getUserFromToken};
