@@ -1,5 +1,5 @@
 require('dotenv').config({quiet: true});
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
 
 function generateToken(User) {
