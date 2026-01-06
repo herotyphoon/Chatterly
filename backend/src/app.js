@@ -3,8 +3,9 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 
 const authRoutes = require('./routes/auth.routes.js');
+const friendsRoutes = require('./routes/friends.routes.js');
 const messageRoutes = require('./routes/message.routes.js');
-const {checkAuthentication} = require("./middleware/auth.middleware");
+const {checkAuthentication, checkAuthorization} = require('./middleware/auth.middleware');
 
 const app = express();
 
@@ -14,7 +15,8 @@ app.use(cookieParser());
 app.use(checkAuthentication);
 
 app.use('/api/auth', authRoutes);
-app.use('/api/messages', messageRoutes);
+app.use('/api/friends', checkAuthorization, friendsRoutes);
+app.use('/api/messages', checkAuthorization, messageRoutes);
 
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../frontend/dist')));

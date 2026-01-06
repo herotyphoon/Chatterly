@@ -1,4 +1,4 @@
-const User = require("../models/user.model");
+const User = require('../../models/user.model');
 
 async function validateSignupRequest(req, res, next) {
     try {
@@ -47,7 +47,7 @@ async function validateSignupRequest(req, res, next) {
         next();
     } catch (error) {
         console.error('Signup validation error: ', error.message);
-        return res.status(500).json({message: 'Internal server error'});
+        return res.status(500).json({message: 'Internal Server Error'});
     }
 }
 
