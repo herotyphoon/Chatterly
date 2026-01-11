@@ -9,7 +9,7 @@ async function handleSignUp(req, res) {
             throw new Error('JWT_EXPIRE environment variable is required');
         }
 
-        const {username, fullName, email, password} = req.body;
+        const {username, fullName, password} = req.body;
 
         const jwtExpire = ms(process.env.JWT_EXPIRE);
 
@@ -20,7 +20,6 @@ async function handleSignUp(req, res) {
         const newUser = await User.create({
             username,
             fullName,
-            email,
             password,
         });
 
@@ -35,7 +34,6 @@ async function handleSignUp(req, res) {
             _id: newUser._id,
             username: newUser.username,
             fullName: newUser.fullName,
-            email: newUser.email,
             profileImageUrl: newUser.profileImageUrl,
             message: 'User successfully created!'
         });
@@ -57,9 +55,9 @@ async function handleLogin(req, res) {
             throw new Error('JWT_EXPIRE has invalid format');
         }
 
-        const { email, password } = req.body;
+        const { username, password } = req.body;
 
-        const user = await User.findOne({ email }).select('+password');
+        const user = await User.findOne({ username }).select('+password');
         if (!user || !(await user.comparePassword(password))) {
             return res.status(400).json({message: 'Invalid credentials'});
         }
@@ -73,8 +71,8 @@ async function handleLogin(req, res) {
             secure: process.env.NODE_ENV === 'production',
         }).json({
             _id: user._id,
+            username: user.username,
             fullName: user.fullName,
-            email: user.email,
             profileImageUrl: user.profileImageUrl,
             message: 'Login successful!'
         });
