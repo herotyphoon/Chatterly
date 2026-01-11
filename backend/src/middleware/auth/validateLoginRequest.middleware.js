@@ -1,16 +1,16 @@
 function validateLogin(req, res, next) {
     try {
-        req.body.email = req.body.email?.trim().toLowerCase();
+        req.body.username = req.body.username?.trim();
 
-        const { email, password } = req.body;
+        const { username, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ message: 'Email and password are required' });
+        if (!username || !password) {
+            return res.status(400).json({ message: 'Username and password are required' });
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({ message: 'Invalid email address' });
+        const usernameRegex = /^[a-z0-9_]+$/;
+        if (!usernameRegex.test(username)) {
+            return res.status(400).json({ message: 'Invalid credentials' });
         }
 
         next();

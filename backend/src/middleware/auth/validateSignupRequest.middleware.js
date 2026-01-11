@@ -4,11 +4,10 @@ async function validateSignupRequest(req, res, next) {
     try {
         req.body.fullName = req.body.fullName?.trim();
         req.body.username = req.body.username?.trim();
-        req.body.email = req.body.email?.trim().toLowerCase();
 
-        const {username, fullName, email, password} = req.body;
+        const {username, fullName, password} = req.body;
 
-        if (!username || !fullName || !email || !password) return res.status(400).json({message: 'All fields are required'});
+        if (!username || !fullName || !password) return res.status(400).json({message: 'All fields are required'});
 
         if (username.length < 5) return res.status(400).json({message: 'Username must be at least 5 characters'});
 
@@ -30,17 +29,9 @@ async function validateSignupRequest(req, res, next) {
             });
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) return res.status(400).json({message: 'Invalid email address'});
-
-        const existingUser = await User.findOne({
-            $or: [{email}, {username}]
-        });
+        const existingUser = await User.findOne({ username });
 
         if (existingUser) {
-            if (existingUser.email === email) {
-                return res.status(400).json({message: 'Email already exists'});
-            }
             return res.status(400).json({message: 'Username already exists'});
         }
 

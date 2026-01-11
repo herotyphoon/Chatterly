@@ -14,7 +14,6 @@ function generateToken(User) {
             _id: User._id,
             username: User.username,
             fullName: User.fullName,
-            email: User.email,
             profileImageUrl: User.profileImageUrl,
         }
 
